@@ -18,7 +18,7 @@ System X provides the following user types:
 - **Company**. The number of operations is not limited.
 - **Advanced**. The number of operations is not limited.
 
-![diagram](/system-x/assets/diagram.png)
+![diagram](./assets/diagram.png)
 
 ## Transition
 
