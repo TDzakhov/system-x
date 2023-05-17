@@ -1,0 +1,306 @@
+openapi: 3.0.0
+info:
+  title: System X - OpenAPI 3.0
+  description: |-
+    Use the System-X API to manage your plans effectively.
+  version: 1.0.0
+servers:
+  - url: https://system-x.swagger.io/api/v3
+paths:
+  /user:
+    get:
+      tags:
+        - Users
+      summary: Retrieves information about the user by ID.
+      description: >
+        Gets information about the user, such as the user ID, provider ID, user status and sub status, user type, and current zone.
+      operationId: getUserById
+      parameters:
+        - in: query
+          name: user_id
+          description: Unique user identifier.
+          required: true
+          schema:
+            type: string
+            example: 3453255
+        - in: query
+          name: from
+          description: Pagination start timestamp.
+          required: false
+          schema:
+            type: integer
+            format: date-time
+        - in: query
+          name: to
+          description: Pagination end timestamp.
+          required: false
+          schema:
+            type: integer
+            format: date-time 
+        - in: query
+          name: limit
+          description: Limit to returned records.
+          required: false
+          schema:
+            type: integer
+            format: int64
+            default: 1000
+            minimum: 1
+            maximum: 1000
+        - in: query
+          name: provider_id
+          description: Unique partner identifier that owns the user.
+          required: false
+          schema:
+            type: string
+            minimum: 1
+            maximum: 4
+            example: 3453255
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /partner:
+    get:
+      tags:
+        - Partners
+      summary: Retrieves information about the partner by ID.
+      description: >
+        Gets information about the partner, such as the partner ID and status.
+      operationId: getPartnerByID
+      parameters:
+        - in: query
+          name: provider_id
+          description: Unique partner identifier that owns the user.
+          required: true
+          schema:
+            type: string
+            minimum: 1
+            maximum: 4
+            example: 3453255
+        - in: query
+          name: status
+          description: Partner operation state.
+          schema:
+            type: string
+            enum: 
+             - active
+             - stopped
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Partners'
+  /plans:
+    get:
+      tags:
+        - Plans 
+      summary: Retrieves a list of plans.
+      description: >
+        Gets the number of plans available for the given partner per user type.
+      operationId: getPlansByID
+      parameters:
+        - in: query
+          name: provider_id
+          description: Unique partner identifier.
+          required: true
+          schema:
+            type: string
+            minimum: 1
+            maximum: 4
+            example: 3453255
+        - in: query
+          name: user_type
+          description: Unique user identifier. Except `Guest` and `Admin` users.
+          required: false
+          schema:
+            type: string
+            example: basic, company, advanced
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Plans'
+    post:
+      tags:
+        - Plans
+      summary: Creates a new plan.
+      description: >
+        Create a new plan for the given partner and/or user.
+      operationId: createPlan
+      requestBody:
+       description: Create a new plan by submitting the following request.     
+       content:
+        application/json:
+            schema:
+              $ref: '#/components/schemas/NewPlan'
+        application/xml:
+            schema:
+              $ref: '#/components/schemas/NewPlan'
+        application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/NewPlan'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewPlan'
+      security:
+        - BasicAuth: []
+    put:
+      tags:
+        - Plans
+      summary: Updates a plan.
+      description: >
+        Updates an existing plan for the given partner and/or user.
+      operationId: updatePlanById
+      parameters:
+        - name: plan_id
+          in: query
+          description: Specify a unique plan identification number.
+          required: true
+          schema:
+            type: string   
+      requestBody:
+        description: Update a new plan by submitting the following request. 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/User'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewPlan'
+      security:
+        - BasicAuth: []
+    delete:
+      tags:
+        - Plans
+      summary: Deletes a plan
+      description: This can only be done by the logged in user.
+      operationId: deletePlan
+      parameters:
+        - name: plan_id
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+        '400':
+          description: Invalid plan supplied
+        '404':
+          description: Plan not found
+components:
+  securitySchemes:
+   BasicAuth:
+      type: http
+      scheme: basic
+  schemas:
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          minimum: 1
+          maximum: 7
+          example: 3453255
+          description: "Unique user identifier."
+        provider_id:
+          type: string
+          minimum: 1
+          maximum: 4
+          example: 2323
+          description: "Unique identifier of the partner a user bound to."
+        status:
+          type: string
+          description: "User service state."
+          enum: 
+            - active
+            - inactive
+            - idle
+            - signing
+        sub_status:
+          type: string
+          enum:
+            - signed
+            - unsigned
+            - absent
+        type:
+          type: string
+          description: "User type."
+          enum: 
+            - basic
+            - guest
+            - company
+            - advanced
+            - admin
+        zone:
+          type: string
+          example: ru, us, gb
+          description: "Region of residence. Two letters of lower case (Alpha-2 code, ISO 3166)"
+    Partners:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          minimum: 1
+          maximum: 4
+          example: 2323”
+          description: "Unique partner identifier."
+        status:
+          type: string
+          description: "Partner operation state."
+          enum: 
+           - active
+           - stopped
+    Plans:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          minimum: 1
+          maximum: 4
+          example: 2323”
+          description: "Unique partner identifier."
+        plans_total:
+          type: integer
+          description: "Total number of plans"
+    NewPlan:
+      type: object
+      properties:
+        provider_id:
+          type: string
+          minimum: 1
+          maximum: 4
+          example: 2323”
+          description: "Unique partner identifier."
+        user_id:
+          type: string
+          minimum: 1
+          maximum: 7
+          example: 3453255
+          description: "Unique user identifier."
+        plan_id:
+          type: string
+          description: "Unique plan identified."
+    
